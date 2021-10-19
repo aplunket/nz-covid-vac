@@ -46,31 +46,40 @@ filter_category = st.selectbox('Filter by', (filter_category_list))
 if filter_category != '':
     filter_value_list = vaccine_data[filter_category].drop_duplicates()
     filter_value = st.selectbox('Filter value', (filter_value_list))
+else: 
+    filter_value = ''
 
-#filter for other category
-if filter_category != '':
-    bar_data = vaccine_data[vaccine_data[filter_category]==filter_value]
-else:
-    bar_data = vaccine_data
+def create_graph_dataset(df, x_axis, y_axis, filter_category, filter_value, filter_type='include'):
+    #filter for category
+    if filter_category != '':
+        if filter_type == 'include':
+            df = df[df[filter_category]==filter_value]
+        elif filter_type == 'exclude':
+            df = df[df[filter_category]!=filter_value]
 
-#group data by variable
-bar_data = bar_data.groupby(f'{y_axis}').sum()
-bar_data.reset_index(inplace=True)
+    #group data by variable
+    df = df.groupby(f'{y_axis}').sum()
+    df.reset_index(inplace=True)
 
-#remove categories depending on graph type
-if y_axis == 'DHB of residence':
-    bar_data = bar_data.drop(bar_data[bar_data['DHB of residence'] == 'Overseas / Unknown'].index)
+    #remove categories depending on graph type
+    if y_axis == 'DHB of residence':
+        df = df.drop(df[df['DHB of residence'] == 'Overseas / Unknown'].index)
+        df = df.drop(df[df['DHB of residence'] == 'Various'].index)
 
-#add in percentages after variable is created
-if x_axis == 'Percent first dose':
-    bar_data = bar_data.assign(percent = lambda x: x['First dose administered'] / x['Population'])
-else:
-    bar_data = bar_data.assign(percent = lambda x: x['Second dose administered'] / x['Population'])
+    #add in percentages after variable is created
+    if x_axis == 'Percent first dose':
+        df = df.assign(percent = lambda x: x['First dose administered'] / x['Population'])
+    else:
+        df = df.assign(percent = lambda x: x['Second dose administered'] / x['Population'])
 
-bar_data['percent'] = bar_data['percent'].round(3) * 100
-bar_data['percent'] = bar_data['percent'].apply(lambda x: 100 if x > 100 else x)
+    df['percent'] = df['percent'].round(3) * 100
+    df['percent'] = df['percent'].apply(lambda x: 100 if x > 100 else x)
+
+    return df
 
 #create bar graph
+bar_data = create_graph_dataset(vaccine_data, x_axis, y_axis, filter_category, filter_value, 'include')
+
 base = alt.Chart(bar_data).encode(
     alt.X('percent:Q', title='', scale=alt.Scale(domain=[0, 100])),
     alt.Y(f'{y_axis}', title='')
@@ -95,3 +104,36 @@ st.markdown("""---""")
 st.write('##### {} by {}'.format(x_axis, y_axis))
 st.altair_chart(bars + text, use_container_width=True)
 st.caption('Source: [Ministry of Health](https://github.com/minhealthnz/nz-covid-data/blob/main/vaccine-data/latest/dhb_residence_uptake.csv)')
+
+if filter_category != '':
+    category_data = bar_data[[y_axis, 'percent']]
+    category_data.rename(columns = {y_axis: 'y'}, inplace = True)
+    category_data['category'] = filter_value
+
+    other_data = create_graph_dataset(vaccine_data, x_axis, y_axis, filter_category, filter_value, 'exclude')
+    other_data = other_data[[y_axis, 'percent']]
+    other_data['category'] = 'Other'
+    other_data.rename(columns = {y_axis: 'y'}, inplace = True)
+
+    dumbbell_data = category_data.append(other_data, ignore_index=True)
+
+    dumbbell = alt.Chart(dumbbell_data).mark_point().encode(
+        alt.X(
+            'percent:Q',
+            scale=alt.Scale(zero=False, domain=[0, 100]),
+            axis=alt.Axis(grid=False),
+            title=""
+        ),
+        alt.Y(
+            'y',
+            title="",
+            axis=alt.Axis(grid=True)
+        ),
+        color=alt.Color('category', legend=alt.Legend(title="")),
+    ).properties(
+        height=alt.Step(20)
+    ).configure_view(stroke="transparent")
+
+    st.write('##### {} by {} comparing {} to other categories'.format(x_axis, y_axis, filter_value))
+    st.altair_chart(dumbbell,use_container_width=True)
+    st.caption('Source: [Ministry of Health](https://github.com/minhealthnz/nz-covid-data/blob/main/vaccine-data/latest/dhb_residence_uptake.csv)')
