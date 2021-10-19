@@ -5,7 +5,7 @@ import altair as alt
 st.set_page_config('NZ COVID-19 Vaccine Stats')
 st.title('New Zealand COVID-19 Vaccine Stats')
 
-st.write('This page visualises the COVID-19 vaccine rollout in New Zealand')
+st.write('This page visualises the COVID-19 vaccine rollout in New Zealand and tracks the percentage of the eligible population that has been vaccinated.')
 st.write('Data for this page comes from the [Ministry of Health Github Repository](https://github.com/minhealthnz/nz-covid-data/)')
 
 st.write('##### Select minimum vaccine percentage to highlight')
