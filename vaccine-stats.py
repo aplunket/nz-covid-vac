@@ -108,16 +108,16 @@ st.caption('Source: [Ministry of Health](https://github.com/minhealthnz/nz-covid
 if filter_category != '':
     category_data = bar_data[[y_axis, 'percent']]
     category_data.rename(columns = {y_axis: 'y'}, inplace = True)
-    category_data['category'] = filter_value
+    category_data['colour'] = '#191970'
 
     other_data = create_graph_dataset(vaccine_data, x_axis, y_axis, filter_category, filter_value, 'exclude')
     other_data = other_data[[y_axis, 'percent']]
-    other_data['category'] = 'Other'
+    other_data['colour'] = '#a9a9a9'
     other_data.rename(columns = {y_axis: 'y'}, inplace = True)
 
     dumbbell_data = category_data.append(other_data, ignore_index=True)
 
-    dumbbell = alt.Chart(dumbbell_data).mark_point().encode(
+    dumbbell = alt.Chart(dumbbell_data).mark_circle().encode(
         alt.X(
             'percent:Q',
             scale=alt.Scale(zero=False, domain=[0, 100]),
@@ -129,12 +129,13 @@ if filter_category != '':
             title="",
             axis=alt.Axis(grid=True)
         ),
-        color=alt.Color('category', legend=alt.Legend(title="")),
+        color=alt.Color('colour', scale=None, legend=alt.Legend(title=""))
     ).properties(
         height=alt.Step(20)
-    ).configure_view(stroke="transparent")
+    ).configure_view(stroke="transparent"
+    ).configure_circle(size=200)
 
     st.write('##### {} by {}'.format(x_axis, y_axis))
-    st.write('{} compared to the remaining {}'.format(filter_value, filter_category))
+    st.markdown('<b style="color:#191970;">{} {}</b> compared to the <b style="color:#a9a9a9;">Other {}s</b>'.format(filter_value, filter_category, filter_category), unsafe_allow_html=True)
     st.altair_chart(dumbbell,use_container_width=True)
     st.caption('Source: [Ministry of Health](https://github.com/minhealthnz/nz-covid-data/blob/main/vaccine-data/latest/dhb_residence_uptake.csv)')
