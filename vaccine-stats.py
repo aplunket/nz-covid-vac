@@ -1,4 +1,3 @@
-from numpy import double
 import streamlit as st
 import pandas as pd
 import altair as alt
@@ -6,15 +5,28 @@ import altair as alt
 st.set_page_config('NZ COVID-19 Vaccine Stats')
 st.title('New Zealand COVID-19 Vaccine Stats')
 
+st.write('This page visualises the COVID-19 vaccine rollout in New Zealand')
+st.write('Data for this page comes from the [Ministry of Health Github Repository](https://github.com/minhealthnz/nz-covid-data/)')
+
+st.write('')
+st.write('##### Select minimum vaccine percentage to highlight')
+
+highlight_percent = st.slider('', min_value=0, max_value=100, value=90)
+
 st.subheader('Vaccine stats by Area, Ethnic Group, Age and Gender')
 
-st.caption('Source: [Ministry of Health - Github](https://github.com/minhealthnz/nz-covid-data/)')
-
 moh_github = 'https://raw.githubusercontent.com/minhealthnz/nz-covid-data/main/vaccine-data/latest/'
-url = moh_github + 'dhb_residence_uptake.csv'
 
 #read in data
-vaccine_data = pd.read_csv(url)
+@st.cache
+def read_moh_data(url):
+    df = pd.read_csv(url)
+    return df
+
+vaccine_data = read_moh_data(moh_github + 'dhb_residence_uptake.csv')
+
+st.write('')
+st.write('##### Select x and y axis variables')
 
 #drop down boxes for x and y axis
 x_axis = 'Percent first dose'
@@ -22,8 +34,6 @@ x_axis = st.selectbox('X Axis', ('Percent first dose', 'Percent second dose'))
 
 y_axis = 'DHB of residence'
 y_axis = st.selectbox('Y Axis', ('DHB of residence', 'Ethnic group', 'Age group', 'Gender'))
-
-highlight_percent = st.slider('Highlight vaccine rate lower than percentage', min_value=0, max_value=100, value=90)
 
 #group data by variable
 bar_data = vaccine_data.groupby(f'{y_axis}').sum()
@@ -44,8 +54,8 @@ bar_data['percent'] = bar_data['percent'].apply(lambda x: 100 if x > 100 else x)
 
 #create bar graph
 base = alt.Chart(bar_data).encode(
-    alt.X('percent:Q', title=f'{x_axis}', scale=alt.Scale(domain=[0, 100])),
-    y=f'{y_axis}'
+    alt.X('percent:Q', title='', scale=alt.Scale(domain=[0, 100])),
+    alt.Y(f'{y_axis}', title='')
 )
 bars = base.mark_bar().encode(
     color=alt.condition(
@@ -63,5 +73,7 @@ text = base.mark_text(
     text='percent:Q'
 )
 
-st.altair_chart(bars + text)
-
+st.write('')
+st.write('##### {} by {}'.format(x_axis, y_axis))
+st.altair_chart(bars + text, use_container_width=True)
+st.caption('Source: [Ministry of Health](https://github.com/minhealthnz/nz-covid-data/blob/main/vaccine-data/latest/dhb_residence_uptake.csv)')
