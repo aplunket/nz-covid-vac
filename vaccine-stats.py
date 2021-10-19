@@ -134,6 +134,7 @@ if filter_category != '':
         height=alt.Step(20)
     ).configure_view(stroke="transparent")
 
-    st.write('##### {} by {} comparing {} to other categories'.format(x_axis, y_axis, filter_value))
+    st.write('##### {} by {}'.format(x_axis, y_axis))
+    st.write('{} compared to the remaining {}'.format(filter_value, filter_category))
     st.altair_chart(dumbbell,use_container_width=True)
     st.caption('Source: [Ministry of Health](https://github.com/minhealthnz/nz-covid-data/blob/main/vaccine-data/latest/dhb_residence_uptake.csv)')
