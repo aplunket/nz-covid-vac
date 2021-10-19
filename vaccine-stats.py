@@ -8,7 +8,6 @@ st.title('New Zealand COVID-19 Vaccine Stats')
 st.write('This page visualises the COVID-19 vaccine rollout in New Zealand')
 st.write('Data for this page comes from the [Ministry of Health Github Repository](https://github.com/minhealthnz/nz-covid-data/)')
 
-st.write('')
 st.write('##### Select minimum vaccine percentage to highlight')
 
 highlight_percent = st.slider('', min_value=0, max_value=100, value=90)
@@ -26,17 +25,36 @@ def read_moh_data(url):
 vaccine_data = read_moh_data(moh_github + 'dhb_residence_uptake.csv')
 
 st.write('')
-st.write('##### Select x and y axis variables')
+st.write('##### Select x and y axis variables and optional filter variable')
 
 #drop down boxes for x and y axis
 x_axis = 'Percent first dose'
 x_axis = st.selectbox('X Axis', ('Percent first dose', 'Percent second dose'))
 
+y_axis_list = ['', 'DHB of residence', 'Ethnic group', 'Age group', 'Gender']
+
 y_axis = 'DHB of residence'
-y_axis = st.selectbox('Y Axis', ('DHB of residence', 'Ethnic group', 'Age group', 'Gender'))
+y_axis = st.selectbox('Y Axis', (list(filter(lambda x: x != '', y_axis_list))))
+
+st.markdown("""---""")
+
+#add a optional filter for the data
+filter_category_list = list(filter(lambda x: x != y_axis, y_axis_list))
+
+filter_category = st.selectbox('Filter by', (filter_category_list))
+
+if filter_category != '':
+    filter_value_list = vaccine_data[filter_category].drop_duplicates()
+    filter_value = st.selectbox('Filter value', (filter_value_list))
+
+#filter for other category
+if filter_category != '':
+    bar_data = vaccine_data[vaccine_data[filter_category]==filter_value]
+else:
+    bar_data = vaccine_data
 
 #group data by variable
-bar_data = vaccine_data.groupby(f'{y_axis}').sum()
+bar_data = bar_data.groupby(f'{y_axis}').sum()
 bar_data.reset_index(inplace=True)
 
 #remove categories depending on graph type
@@ -73,7 +91,7 @@ text = base.mark_text(
     text='percent:Q'
 )
 
-st.write('')
+st.markdown("""---""")
 st.write('##### {} by {}'.format(x_axis, y_axis))
 st.altair_chart(bars + text, use_container_width=True)
 st.caption('Source: [Ministry of Health](https://github.com/minhealthnz/nz-covid-data/blob/main/vaccine-data/latest/dhb_residence_uptake.csv)')
