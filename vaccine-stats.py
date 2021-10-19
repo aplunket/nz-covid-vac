@@ -129,13 +129,24 @@ if filter_category != '':
             title="",
             axis=alt.Axis(grid=True)
         ),
-        color=alt.Color('colour', scale=None, legend=alt.Legend(title=""))
-    ).properties(
+        color=alt.Color('colour', scale=None, legend=alt.Legend(title="")),
+        tooltip=[alt.Tooltip('percent', title=x_axis)]
+    )
+
+    vline = alt.Chart(pd.DataFrame({
+        'percent': [highlight_percent],
+        'color': ['#FF4B4B']
+        })).mark_rule().encode(
+        x='percent:Q',
+        color=alt.Color('color:N', scale=None)
+    )
+
+    dumbbell_chart = alt.layer(vline, dumbbell).properties(
         height=alt.Step(20)
     ).configure_view(stroke="transparent"
     ).configure_circle(size=200)
 
     st.write('##### {} by {}'.format(x_axis, y_axis))
     st.markdown('<b style="color:#191970;">{} {}</b> compared to the <b style="color:#a9a9a9;">Other {}s</b>'.format(filter_value, filter_category, filter_category), unsafe_allow_html=True)
-    st.altair_chart(dumbbell,use_container_width=True)
+    st.altair_chart(dumbbell_chart,use_container_width=True)
     st.caption('Source: [Ministry of Health](https://github.com/minhealthnz/nz-covid-data/blob/main/vaccine-data/latest/dhb_residence_uptake.csv)')
