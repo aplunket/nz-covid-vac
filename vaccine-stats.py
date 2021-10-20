@@ -15,6 +15,7 @@ highlight_percent = st.slider('', min_value=0, max_value=100, value=90)
 st.subheader('Vaccine stats by Area, Ethnic Group, Age and Gender')
 
 moh_github = 'https://raw.githubusercontent.com/minhealthnz/nz-covid-data/main/vaccine-data/latest/'
+moh_filename = 'dhb_residence_uptake.csv'
 
 #read in data
 @st.cache
@@ -22,7 +23,7 @@ def read_moh_data(url):
     df = pd.read_csv(url)
     return df
 
-vaccine_data = read_moh_data(moh_github + 'dhb_residence_uptake.csv')
+vaccine_data = read_moh_data(moh_github + moh_filename)
 
 st.write('')
 st.write('##### Select x and y axis variables and optional filter variable')
@@ -49,6 +50,7 @@ if filter_category != '':
 else: 
     filter_value = ''
 
+@st.cache
 def create_graph_dataset(df, x_axis, y_axis, filter_category, filter_value, filter_type='include'):
     #filter for category
     if filter_category != '':
