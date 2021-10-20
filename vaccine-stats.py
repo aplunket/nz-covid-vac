@@ -6,13 +6,14 @@ st.set_page_config('NZ COVID-19 Vaccine Stats')
 st.title('New Zealand COVID-19 Vaccine Stats')
 
 st.write('This page visualises the COVID-19 vaccine rollout in New Zealand and tracks the percentage of the eligible population that has been vaccinated.')
-st.write('Data for this page comes from the [Ministry of Health Github Repository](https://github.com/minhealthnz/nz-covid-data/)')
 
-st.write('##### Select minimum vaccine percentage to highlight')
+st.markdown("""---""")
+st.markdown('##### Set target vaccination percentage')
 
 highlight_percent = st.slider('', min_value=0, max_value=100, value=90)
 
-st.subheader('Vaccine stats by Area, Ethnic Group, Age and Gender')
+st.write("The below graphs will let you explore which demographics still haven't achieved the target you set.")
+st.markdown("""---""")
 
 moh_github = 'https://raw.githubusercontent.com/minhealthnz/nz-covid-data/main/vaccine-data/latest/'
 moh_filename = 'dhb_residence_uptake.csv'
@@ -26,7 +27,7 @@ def read_moh_data(url):
 vaccine_data = read_moh_data(moh_github + moh_filename)
 
 st.write('')
-st.write('##### Select x and y axis variables and optional filter variable')
+st.markdown('##### Select x and y axis variables and optional filter')
 
 #drop down boxes for x and y axis
 x_axis = 'Percent first dose'
@@ -103,7 +104,7 @@ text = base.mark_text(
 )
 
 st.markdown("""---""")
-st.write('##### {} by {}'.format(x_axis, y_axis))
+st.markdown('##### {} by {}'.format(x_axis, y_axis))
 st.altair_chart(bars + text, use_container_width=True)
 st.caption('Source: [Ministry of Health](https://github.com/minhealthnz/nz-covid-data/blob/main/vaccine-data/latest/dhb_residence_uptake.csv)')
 
@@ -152,3 +153,5 @@ if filter_category != '':
     st.markdown('<b style="color:#191970;">{} {}</b> compared to the <b style="color:#a9a9a9;">Other {}s</b>'.format(filter_value, filter_category, filter_category), unsafe_allow_html=True)
     st.altair_chart(dumbbell_chart,use_container_width=True)
     st.caption('Source: [Ministry of Health](https://github.com/minhealthnz/nz-covid-data/blob/main/vaccine-data/latest/dhb_residence_uptake.csv)')
+
+st.write('Data for this page comes from the [Ministry of Health Github Repository](https://github.com/minhealthnz/nz-covid-data/) and is updated each Wednesday. Use the link to see notes about the data.')
