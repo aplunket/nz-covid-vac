@@ -19,7 +19,6 @@ moh_github = 'https://raw.githubusercontent.com/minhealthnz/nz-covid-data/main/v
 moh_filename = 'dhb_residence_uptake.csv'
 
 #read in data
-@st.cache
 def read_moh_data(url):
     df = pd.read_csv(url)
     return df
